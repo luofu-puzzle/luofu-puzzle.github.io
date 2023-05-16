@@ -1,0 +1,128 @@
+<form>
+    <label>小：</label>
+    <label title="顺时针转过的点位数">初始位置</label>
+    <input type="number" name="small-init" min="0" max="5" value="0">
+    <label title="每次转动顺时针转过几个点位，逆时针则填负数">运动方式</label>
+    <input type="number" name="small-mode" min="-4" max="4" value="4">
+    <br>
+    <label>中：</label>
+    <label title="顺时针转过的点位数">初始位置</label>
+    <input type="number" name="medium-init" min="0" max="5" value="2">
+    <label title="每次转动顺时针转过几个点位，逆时针则填负数">运动方式</label>
+    <input type="number" name="medium-mode" min="-4" max="4" value="1">
+    <br>
+    <label>大：</label>
+    <label title="顺时针转过的点位数">初始位置</label>
+    <input type="number" name="large-init" min="0" max="5" value="4">
+    <label title="每次转动顺时针转过几个点位，逆时针则填负数">运动方式</label>
+    <input type="number" name="large-mode" min="-4" max="4" value="4">
+    <br>
+    <label>绑定关系：</label>
+    <br>
+    <label>小</label>
+    <input type="checkbox" name="size" type="number" value="1">
+    <label>中</label>
+    <input type="checkbox" name="size" type="number" value="2">
+    <label>大</label>
+    <input type="checkbox" name="size" type="number" value="4">
+    <br>
+    <label>小中</label>
+    <input type="checkbox" name="size" type="number" value="3" checked>
+    <label>小大</label>
+    <input type="checkbox" name="size" type="number" value="5" checked>
+    <label>中大</label>
+    <input type="checkbox" name="size" type="number" value="6" checked>
+    <br>
+    <label>小中大</label>
+    <input type="checkbox" name="size" type="number" value="7">
+    <br>
+    <button type="button" onclick="showFormData()">确认</button>
+  </form>
+  
+  <script>
+      function apply_op(a, b, c, d, e, f, op) {
+          if (op & 1) {
+              a = (a + d) % 6;
+          }
+          if (op & 2) {
+              b = (b + e) % 6;
+          }
+          if (op & 4) {
+              c = (c + f) % 6;
+          }
+          return [a, b, c];
+      }
+  
+      function find_min_ops(a, b, c, d, e, f, ops) {
+          ops = ops.map(item => parseInt(item));
+          const queue = [[a, b, c, []]];
+          const visited = new Set();
+          var i = 0;
+  
+          while (queue.length && i++ < 216) {
+              const [curr_a, curr_b, curr_c, path] = queue.shift();
+  
+              // check if we've reached the goal state
+              if (curr_a === 0 && curr_b === 0 && curr_c === 0) {
+                  return path;
+              }
+  
+              // try applying each operation
+              for (const op of ops) {
+                  const [new_a, new_b, new_c] = apply_op(curr_a, curr_b, curr_c, d, e, f, op);
+                  const state = new_a * 36 + new_b * 6 + new_c;
+  
+                  // check if we've already visited this state
+                  if (visited.has(state)) {
+                      continue;
+                  }
+  
+                  visited.add(state);
+                  queue.push([new_a, new_b, new_c, path.concat(op)]);
+              }
+          }
+          // if we've exhausted all possibilities and haven't found a solution, return -1 and None
+          return null;
+      }
+
+      function countNumber(list) {
+        const map = {
+            1: '小',
+            2: '中',
+            4: '大',
+            3: '小中',
+            5: '小大',
+            6: '中大',
+            7: '小中大',
+        };
+
+        const count = {};
+
+        list.forEach(item => {
+            if (!count[item]) {
+            count[item] = 1;
+            } else {
+            count[item]++;
+            }
+        });
+
+        const result = {};
+
+        Object.keys(count).forEach(key => {
+            result[map[key]] = count[key];
+        });
+
+        return result;
+    }
+  
+      function getNumber(formData, name) {
+        const str = formData.get(name);
+        return str ? parseFloat(str) : null;
+      }
+  
+      function showFormData() {
+          const form = document.querySelector('form');
+          const formData = new FormData(form);
+          alert(JSON.stringify(countNumber(find_min_ops(getNumber(formData,'small-init'),getNumber(formData,'medium-init'),getNumber(formData,'large-init'),getNumber(formData,'small-mode'),getNumber(formData,'medium-mode'),getNumber(formData,'large-mode'),formData.getAll('size')))));
+      }
+  </script>
